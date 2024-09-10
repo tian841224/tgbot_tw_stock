@@ -3,7 +3,7 @@ name: Deploy to EC2
 on:
   push:
     branches:
-      - master
+      - feature/測試GitAction流程
 
 jobs:
   Build:
@@ -44,9 +44,6 @@ jobs:
           run: |
             cd TGBot_TW_Stock_Polling
             dotnet add package Microsoft.Playwright
-        
-        - name: Build Project
-          run: dotnet build
         
         - name: Install Playwright Browsers
           run: |
