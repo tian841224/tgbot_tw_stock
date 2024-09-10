@@ -16,11 +16,6 @@ jobs:
       uses: actions/setup-dotnet@v1
       with:
         dotnet-version: 6.0.x 
-
-    - name: Install dependencies for Playwright
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y libnss3 libatk1.0-0 libatk-bridge2.0-0 libx11-xcb1 libxcomposite1 libxrandr2 libgbm1 libasound2
           
     - name: Build .NET app
       run: dotnet build
@@ -37,8 +32,8 @@ jobs:
           with:
             dotnet-version: 6.0.x
 
-        - name: List directory contents
-          run: ls -R
+        # - name: List directory contents
+        #   run: ls -R
           
         - name: Add Playwright package
           run: |
