@@ -1,0 +1,82 @@
+name: Deploy to EC2
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  Build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up .NET SDK
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: 6.0.x 
+
+    - name: Install dependencies for Playwright
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y libnss3 libatk1.0-0 libatk-bridge2.0-0 libx11-xcb1 libxcomposite1 libxrandr2 libgbm1 libasound2
+          
+    - name: Build .NET app
+      run: dotnet build
+
+  # Test:
+  #   runs-on: ubuntu-latest
+  #   needs: Build
+  #   steps:
+  #   - name: Checkout code
+  #     uses: actions/checkout@v4
+
+  #   - name: Install Playwright CLI
+  #     run: dotnet tool install --global Microsoft.Playwright.CLI
+
+  #   - name: Install Playwright Browsers
+  #     run: playwright install --with-deps
+
+  #   - name: Run Unit Tests
+  #     run: dotnet test --no-build --verbosity normal TGBot_TW_Stock_Polling.sln
+
+  Deploy:
+    runs-on: ubuntu-latest
+    needs: Build
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+    # 將BotToken 插入到 appsettings.json 中
+      - name: Add BotToken
+        run: |
+          sed -i "s/\"BotToken\": \".*\"/\"BotToken\": \"${{ secrets.BOT_TOKEN }}\"/" TGBot_TW_Stock_Polling/appsettings.json
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v1 
+        with:
+          # 使用你的 Docker Hub 使用者名稱和ACCESS_TOKEN
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
+        
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v2
+        with:
+          context: ${{ github.workspace }}
+          push: true
+          tags: ${{ secrets.DOCKER_HUB_USERNAME }}/tgbot_tw_stock_polling:latest  
+  
+      - name: Executing remote ssh commands using ssh key
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.HOST_DNS }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+              sudo docker stop tgbot_tw_stock_polling || true
+              sudo docker rm tgbot_tw_stock_polling || true
+              sudo docker rmi -f ${{ secrets.DOCKER_HUB_USERNAME }}/tgbot_tw_stock_polling:latest || true
+              sudo docker pull ${{ secrets.DOCKER_HUB_USERNAME }}/tgbot_tw_stock_polling:latest
+              sudo docker run -d --name tgbot_tw_stock_polling --restart=unless-stopped  ${{ secrets.DOCKER_HUB_USERNAME }}/tgbot_tw_stock_polling:latest
