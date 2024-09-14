@@ -18,6 +18,10 @@ namespace Telegram.Bot.Examples.WebHook.Services
             _logger = logger;
         }
 
+        /// <summary>
+        /// 取得頁面
+        /// </summary>
+        /// <returns></returns>
         public async Task<IPage> GetPageAsync()
         {
 

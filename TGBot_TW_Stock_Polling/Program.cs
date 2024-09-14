@@ -14,7 +14,7 @@ var config = new ConfigurationBuilder()
 LogManager.Configuration = new NLogLoggingConfiguration(config.GetSection("NLog"));
 var logger = LogManager.GetCurrentClassLogger();
 
-logger.Info("�Ұʵ{��");
+logger.Info("啟動程式");
 
 try
 {
