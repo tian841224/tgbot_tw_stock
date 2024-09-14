@@ -51,10 +51,10 @@ namespace Telegram.Bot.Examples.WebHook.Services
         /// <param name="errorMessage"></param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        public async Task ErrorNotify(string errorMessage, CancellationToken cancellationToken)
+        public async Task ErrorNotify(ChatId chatId, string errorMessage, CancellationToken cancellationToken)
         {
             await _botClient.SendTextMessageAsync(
-                text: errorMessage,
+                text: $"使用者:{chatId}/錯誤:{errorMessage}",
                 chatId: 806077724,
                 parseMode: ParseMode.Html,
                 cancellationToken: cancellationToken);
@@ -103,7 +103,7 @@ namespace Telegram.Bot.Examples.WebHook.Services
             catch (Exception ex)
             {
                 _logger.LogInformation("GetKlineAsync：" + ex.Message);
-                await ErrorNotify("GetKlineAsync：" + ex.Message, cancellationToken);
+                await ErrorNotify(chatID, "GetKlineAsync：" + ex.Message, cancellationToken);
             }
             finally
             {
@@ -204,7 +204,7 @@ namespace Telegram.Bot.Examples.WebHook.Services
             catch (Exception ex)
             {
                 _logger.LogInformation("GetDetialPriceAsync：" + ex.Message);
-                await ErrorNotify("GetDetialPriceAsync：" + ex.Message, cancellationToken);
+                await ErrorNotify(chatID, "GetDetialPriceAsync：" + ex.Message, cancellationToken);
             }
             finally
             {
@@ -271,7 +271,7 @@ namespace Telegram.Bot.Examples.WebHook.Services
             catch (Exception ex)
             {
                 _logger.LogInformation("GetPerformanceAsync：" + ex.Message);
-                await ErrorNotify("GetPerformanceAsync：" + ex.Message, cancellationToken);
+                await ErrorNotify(chatID, "GetPerformanceAsync：" + ex.Message, cancellationToken);
             }
             finally
             {
@@ -329,7 +329,7 @@ namespace Telegram.Bot.Examples.WebHook.Services
             catch (Exception ex)
             {
                 _logger.LogInformation("GetNewsAsync：" + ex.Message);
-                await ErrorNotify("GetNewsAsync：" + ex.Message, cancellationToken);
+                await ErrorNotify(chatID, "GetNewsAsync：" + ex.Message, cancellationToken);
             }
             finally
             {
