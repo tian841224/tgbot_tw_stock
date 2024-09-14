@@ -4,6 +4,7 @@ using Telegram.Bot;
 using Telegram.Bot.Examples.WebHook.Services;
 using Telegram.Bot.Services;
 using TGBot_TW_Stock_Polling.Interface;
+using TGBot_TW_Stock_Polling.Services;
 
 
 var config = new ConfigurationBuilder()
@@ -31,6 +32,7 @@ try
             });
     //builder.Services.AddHostedService<InitService>();
     builder.Services.AddScoped<IBrowserHandlers, BrowserHandlers>();
+    builder.Services.AddScoped<IBotService, BotService>();
     builder.Services.AddScoped<TradingView>();
     builder.Services.AddScoped<Cnyes>();
     builder.Services.AddScoped<UpdateHandler>();
