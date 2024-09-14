@@ -7,7 +7,7 @@ using TGBot_TW_Stock_Polling.Interface;
 namespace TestTGBot_TW_Stock_Polling
 {
     [TestClass]
-    public class BrowserHandlersTests
+    internal class BrowserHandlersTests
     {
         private Mock<ILogger<BrowserHandlers>> _loggerMock = null!;
         private IBrowserHandlers _browserHandlers = null!;
