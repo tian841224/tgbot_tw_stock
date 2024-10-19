@@ -1,4 +1,5 @@
-﻿using Telegram.Bot.Examples.WebHook.Services;
+﻿using Microsoft.Extensions.Logging;
+using Telegram.Bot.Examples.WebHook.Services;
 using Telegram.Bot.Exceptions;
 using Telegram.Bot.Polling;
 using Telegram.Bot.Types;
@@ -49,42 +50,52 @@ public class UpdateHandler : IUpdateHandler
     private async Task BotOnMessageReceived(Message message, CancellationToken cancellationToken)
     {
         _logger.LogInformation("收到消息類型: {MessageType}", message.Type);
-
-        if (message.Text is not { } messageText)
-            return;
-
-        var parts = messageText.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-
-        if (parts.Length == 0)
-            return;
-
-        var command = parts[0].ToLowerInvariant();
-
-        switch (command)
+        try
         {
-            case "/start":
-            case "hello":
-                await _botService.SendHelloMessageAsync(message, cancellationToken);
-                break;
 
-            case "/chart":
-            case "/range":
-            case "/k":
-            case "/v":
-            case "/p":
-            case "/n":
-                if (parts.Length < 2 || !int.TryParse(parts[1], out _))
-                {
+            if (message.Text is not { } messageText)
+                return;
+
+            var parts = messageText.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+
+            if (parts.Length == 0)
+                return;
+
+            var command = parts[0].ToLowerInvariant();
+
+            switch (command)
+            {
+                case "/start":
+                case "hello":
+                    await _botService.SendHelloMessageAsync(message, cancellationToken);
+                    break;
+
+                case "/chart":
+                case "/range":
+                case "/k":
+                case "/v":
+                case "/p":
+                case "/n":
+                    if (parts.Length < 2 || !int.TryParse(parts[1], out _))
+                    {
+                        await _botService.SendErrorMessageAsync(message, cancellationToken);
+                        return;
+                    }
+
+                    await ProcessStockCommand(command, parts, message, cancellationToken);
+                    break;
+
+                default:
                     await _botService.SendErrorMessageAsync(message, cancellationToken);
-                    return;
-                }
+                    break;
+            }
+        }
 
-                await ProcessStockCommand(command, parts, message, cancellationToken);
-                break;
+        catch (Exception ex)
+        {
+            _logger.LogError($"Error:{ex.Message}");
+            _logger.LogError($"Message:{message}");
 
-            default:
-                await _botService.SendErrorMessageAsync(message, cancellationToken);
-                break;
         }
     }
 
@@ -100,26 +111,31 @@ public class UpdateHandler : IUpdateHandler
             switch (command)
             {
                 case "/chart":
-                    await _tradingView.GetChartAsync(stockNumber, message.Chat.Id, cancellationToken);
+                    await _tradingView.GetChartAsync(stockNumber, message, cancellationToken);
                     break;
                 case "/range":
                     var range = parts.Length > 2 ? parts[2] : null;
-                    await _tradingView.GetRangeAsync(stockNumber, message.Chat.Id, range, cancellationToken);
+                    await _tradingView.GetRangeAsync(stockNumber, message, range, cancellationToken);
                     break;
                 case "/k":
                     var kRange = parts.Length > 2 ? GetKRange(parts[2]) : "日K";
-                    await _cnyes.GetKlineAsync(stockNumber, message.Chat.Id, kRange, cancellationToken);
+                    await _cnyes.GetKlineAsync(stockNumber, message, kRange, cancellationToken);
                     break;
                 case "/v":
-                    await _cnyes.GetDetialPriceAsync(stockNumber, message.Chat.Id, cancellationToken);
+                    await _cnyes.GetDetialPriceAsync(stockNumber, message, cancellationToken);
                     break;
                 case "/p":
-                    await _cnyes.GetPerformanceAsync(stockNumber, message.Chat.Id, cancellationToken);
+                    await _cnyes.GetPerformanceAsync(stockNumber, message, cancellationToken);
                     break;
                 case "/n":
-                    await _cnyes.GetNewsAsync(stockNumber, message.Chat.Id, cancellationToken);
+                    await _cnyes.GetNewsAsync(stockNumber, message, cancellationToken);
                     break;
             }
+        }
+        catch(Exception ex)
+        {
+            _logger.LogError($"Error:{ex.Message}");
+            _logger.LogError($"Message:{message}");
         }
         finally
         {
