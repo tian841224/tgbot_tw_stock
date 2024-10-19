@@ -4,6 +4,8 @@ using Telegram.Bot.Types;
 using System.Text;
 using Telegram.Bot.Types.ReplyMarkups;
 using TGBot_TW_Stock_Polling.Interface;
+using System.Text.Json;
+using TGBot_TW_Stock_Polling.Dto;
 
 namespace Telegram.Bot.Examples.WebHook.Services
 {
@@ -54,7 +56,9 @@ namespace Telegram.Bot.Examples.WebHook.Services
         public async Task ErrorNotify(Message message, string errorMessage, CancellationToken cancellationToken)
         {
             await _botClient.SendTextMessageAsync(
-                text: $"Message:{message}/錯誤:{errorMessage}",
+                text: $"UserId：{message.Chat.Id}\n" +
+                $"Username：{message.Chat.Username}\n" +
+                $"錯誤：\n {errorMessage}",
                 chatId: 806077724,
                 parseMode: ParseMode.Html,
                 cancellationToken: cancellationToken);
@@ -71,6 +75,8 @@ namespace Telegram.Bot.Examples.WebHook.Services
         {
             try
             {
+                await ErrorNotify(message, "GetKlineAsync：" , cancellationToken);
+
                 //載入網頁
                 var page = await LoadUrl(stockNumber);
 
