@@ -94,8 +94,8 @@ public class UpdateHandler : IUpdateHandler
         catch (Exception ex)
         {
             _logger.LogError($"Error:{ex.Message}");
-            _logger.LogError($"Message:{message}");
-
+            _logger.LogError($"UserId：{message.Chat.Id}\n" + $"Username：{message.Chat.Username}\n");
+            await _botService.ErrorNotify(message,  ex.Message, cancellationToken);
         }
     }
 
@@ -132,10 +132,9 @@ public class UpdateHandler : IUpdateHandler
                     break;
             }
         }
-        catch(Exception ex)
+        catch
         {
-            _logger.LogError($"Error:{ex.Message}");
-            _logger.LogError($"Message:{message}");
+            throw;
         }
         finally
         {
