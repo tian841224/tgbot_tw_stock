@@ -10,22 +10,20 @@ namespace TGBot_TW_Stock_Polling.Services
     public class BotService : IBotService
     {
         private readonly ITelegramBotClient _botClient;
-        private readonly ILogger<BotService> _logger;
 
-        public BotService(ITelegramBotClient botClient, ILogger<BotService> logger)
+        public BotService(ITelegramBotClient botClient)
         {
             _botClient = botClient;
-            _logger = logger;
         }
 
         public async Task<Message> SendTextMessageAsync(MessageDto dto)
         {
             return await _botClient.SendTextMessageAsync(
-            chatId: dto.Message.Chat.Id,
-            text: dto.Text,
-             replyMarkup: dto.ReplyMarkup,
-             parseMode: dto.ParseMode,
-             cancellationToken: dto.CancellationToken);
+                chatId: dto.Message.Chat.Id,
+                text: dto.Text,
+                replyMarkup: dto.ReplyMarkup,
+                parseMode: dto.ParseMode,
+                cancellationToken: dto.CancellationToken);
         }
 
         public async Task<Message> SendHelloMessageAsync(Message message, CancellationToken cancellationToken)
@@ -68,6 +66,18 @@ namespace TGBot_TW_Stock_Polling.Services
                 chatId: dto.Message.Chat.Id,
                 messageId: dto.Reply.MessageId,
                 cancellationToken: dto.CancellationToken);
+        }
+
+
+        public async Task ErrorNotify(Message message, string errorMessage, CancellationToken cancellationToken)
+        {
+            await _botClient.SendTextMessageAsync(
+                text: $"UserId：{message.Chat.Id}\n" +
+                $"Username：{message.Chat.Username}\n" +
+                $"錯誤：\n {errorMessage}",
+                chatId: 806077724,
+                parseMode: ParseMode.Html,
+                cancellationToken: cancellationToken);
         }
     }
 

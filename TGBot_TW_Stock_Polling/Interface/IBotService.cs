@@ -19,5 +19,8 @@ namespace TGBot_TW_Stock_Polling.Interface
 
         /// <summary>刪除訊息</summary>
         Task DeleteMessageAsync(DeleteDto dto);
+
+        /// <summary>錯誤通知</summary>
+        Task ErrorNotify(Message message, string errorMessage, CancellationToken cancellationToken);
     }
 }
