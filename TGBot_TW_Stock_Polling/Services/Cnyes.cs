@@ -60,7 +60,6 @@ namespace Telegram.Bot.Examples.WebHook.Services
         {
             try
             {
-                throw new Exception("測試");
                 //載入網頁
                 var page = await LoadUrl(stockNumber);
 
