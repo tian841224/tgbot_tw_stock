@@ -22,6 +22,14 @@ try
     var builder = WebApplication.CreateBuilder(args);
 
     var apikey = builder.Configuration["BotConfiguration:BotToken"];
+
+    builder.Services.AddLogging(logging =>
+    {
+        logging.ClearProviders();
+        logging.SetMinimumLevel(Microsoft.Extensions.Logging.LogLevel.Trace);
+        logging.AddNLog();
+    });
+
     builder.Services.AddControllers();
     builder.Services.AddEndpointsApiExplorer();
     builder.Services.AddHttpClient("telegram_bot_client")
@@ -45,8 +53,6 @@ try
 
     app.Run();
 }
-
-
 catch (Exception ex)
 {
     logger.Error(ex, "Stopped program because of exception");

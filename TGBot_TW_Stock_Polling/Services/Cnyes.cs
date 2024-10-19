@@ -17,12 +17,14 @@ namespace Telegram.Bot.Examples.WebHook.Services
         private readonly ITelegramBotClient _botClient;
         private readonly ILogger<Cnyes> _logger;
         private readonly IBrowserHandlers _browserHandlers;
+        private readonly IBotService _botService;
 
-        public Cnyes(ITelegramBotClient botClient, ILogger<Cnyes> logger, IBrowserHandlers browserHandlers)
+        public Cnyes(ITelegramBotClient botClient, ILogger<Cnyes> logger, IBrowserHandlers browserHandlers, IBotService botService)
         {
             _botClient = botClient;
             _logger = logger;
             _browserHandlers = browserHandlers;
+            _botService = botService;
         }
 
         /// <summary>
@@ -48,23 +50,6 @@ namespace Telegram.Bot.Examples.WebHook.Services
         }
 
         /// <summary>
-        /// 錯誤通知
-        /// </summary>
-        /// <param name="errorMessage"></param>
-        /// <param name="cancellationToken"></param>
-        /// <returns></returns>
-        public async Task ErrorNotify(Message message, string errorMessage, CancellationToken cancellationToken)
-        {
-            await _botClient.SendTextMessageAsync(
-                text: $"UserId：{message.Chat.Id}\n" +
-                $"Username：{message.Chat.Username}\n" +
-                $"錯誤：\n {errorMessage}",
-                chatId: 806077724,
-                parseMode: ParseMode.Html,
-                cancellationToken: cancellationToken);
-        }
-
-        /// <summary>
         /// 取得K線
         /// </summary>
         /// <param name="stockNumber">股票代號</param>
@@ -75,6 +60,7 @@ namespace Telegram.Bot.Examples.WebHook.Services
         {
             try
             {
+                throw new Exception("測試");
                 //載入網頁
                 var page = await LoadUrl(stockNumber);
 
@@ -106,7 +92,7 @@ namespace Telegram.Bot.Examples.WebHook.Services
             catch (Exception ex)
             {
                 _logger.LogError("GetKlineAsync：" + ex.Message);
-                await ErrorNotify(message, "GetKlineAsync：" + ex.Message, cancellationToken);
+                throw new Exception("GetKlineAsync：" + ex.Message);
             }
             finally
             {
@@ -206,7 +192,7 @@ namespace Telegram.Bot.Examples.WebHook.Services
             catch (Exception ex)
             {
                 _logger.LogError("GetDetialPriceAsync：" + ex.Message);
-                await ErrorNotify(message, "GetDetialPriceAsync：" + ex.Message, cancellationToken);
+                throw new Exception("GetDetialPriceAsync：" + ex.Message);
             }
             finally
             {
@@ -273,7 +259,7 @@ namespace Telegram.Bot.Examples.WebHook.Services
             catch (Exception ex)
             {
                 _logger.LogError("GetPerformanceAsync：" + ex.Message);
-                await ErrorNotify(message, "GetPerformanceAsync：" + ex.Message, cancellationToken);
+                throw new Exception("GetPerformanceAsync：" + ex.Message);
             }
             finally
             {
@@ -331,7 +317,7 @@ namespace Telegram.Bot.Examples.WebHook.Services
             catch (Exception ex)
             {
                 _logger.LogError("GetNewsAsync：" + ex.Message);
-                await ErrorNotify(message, "GetNewsAsync：" + ex.Message, cancellationToken);
+                throw new Exception("GetPerformanceAsync：" + ex.Message);
             }
             finally
             {

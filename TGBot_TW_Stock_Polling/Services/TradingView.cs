@@ -13,12 +13,14 @@ namespace Telegram.Bot.Examples.WebHook.Services
         private readonly ITelegramBotClient _botClient;
         private readonly ILogger<TradingView> _logger;
         private readonly IBrowserHandlers _browserHandlers;
+        private readonly IBotService _botService;
 
-        public TradingView(ITelegramBotClient botClient, ILogger<TradingView> logger, IBrowserHandlers browserHandlers)
+        public TradingView(ITelegramBotClient botClient, ILogger<TradingView> logger, IBrowserHandlers browserHandlers, IBotService botService)
         {
             _botClient = botClient;
             _logger = logger;
             _browserHandlers = browserHandlers;
+            _botService = botService;
         }
 
         /// <summary>
@@ -40,23 +42,6 @@ namespace Telegram.Bot.Examples.WebHook.Services
                 _logger.LogError($"載入網頁時發生錯誤: {ex.Message}");
                 throw;
             }
-        }
-
-        /// <summary>
-        /// 錯誤通知
-        /// </summary>
-        /// <param name="errorMessage"></param>
-        /// <param name="cancellationToken"></param>
-        /// <returns></returns>
-        public async Task ErrorNotify(Message message, string errorMessage, CancellationToken cancellationToken)
-        {
-            await _botClient.SendTextMessageAsync(
-                text: $"UserId：{message.Chat.Id}\n" +
-                $"Username：{message.Chat.Username}\n" +
-                $"錯誤：\n {errorMessage}",
-                chatId: 806077724,
-                parseMode: ParseMode.Html,
-                cancellationToken: cancellationToken);
         }
 
         /// <summary>
@@ -90,7 +75,7 @@ namespace Telegram.Bot.Examples.WebHook.Services
             catch (Exception ex)
             {
                 _logger.LogError("GetChartAsync：" + ex.Message);
-                await ErrorNotify(message,"GetChartAsync：" + ex.Message, cancellationToken);
+                throw new Exception("GetChartAsync：" + ex.Message);
             }
             finally
             {
@@ -168,7 +153,7 @@ namespace Telegram.Bot.Examples.WebHook.Services
             catch (Exception ex)
             {
                 _logger.LogError("GetRangeAsync：" + ex.Message);
-                await ErrorNotify(message, "GetRangeAsync：" + ex.Message, cancellationToken);
+                throw new Exception("GetRangeAsync：" + ex.Message);
             }
             finally
             {
