@@ -48,10 +48,10 @@ namespace Telegram.Bot.Examples.WebHook.Services
         /// <param name="errorMessage"></param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        public async Task ErrorNotify(string errorMessage, CancellationToken cancellationToken)
+        public async Task ErrorNotify(Message message, string errorMessage, CancellationToken cancellationToken)
         {
             await _botClient.SendTextMessageAsync(
-                text: errorMessage,
+                text: $"Message:{message}/錯誤:{errorMessage}",
                 chatId: 806077724,
                 parseMode: ParseMode.Html,
                 cancellationToken: cancellationToken);
@@ -64,7 +64,7 @@ namespace Telegram.Bot.Examples.WebHook.Services
         /// <param name="chatID">使用者ID</param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        public async Task GetChartAsync(string stockNumber, long chatID, CancellationToken cancellationToken)
+        public async Task GetChartAsync(string stockNumber, Message message, CancellationToken cancellationToken)
         {
             try
             {
@@ -79,7 +79,7 @@ namespace Telegram.Bot.Examples.WebHook.Services
                 Stream stream = new MemoryStream(await page.Locator("//div[@class= 'chart-markup-table']").ScreenshotAsync());
 
                 await _botClient.SendPhotoAsync(
-                   chatId: chatID,
+                   chatId: message.Chat.Id,
                    photo: InputFile.FromStream(stream),
                    parseMode: ParseMode.Html,
                    cancellationToken: cancellationToken);
@@ -87,8 +87,8 @@ namespace Telegram.Bot.Examples.WebHook.Services
             }
             catch (Exception ex)
             {
-                _logger.LogInformation("GetChartAsync：" + ex.Message);
-                await ErrorNotify("GetChartAsync：" + ex.Message, cancellationToken);
+                _logger.LogError("GetChartAsync：" + ex.Message);
+                await ErrorNotify(message,"GetChartAsync：" + ex.Message, cancellationToken);
             }
             finally
             {
@@ -104,7 +104,7 @@ namespace Telegram.Bot.Examples.WebHook.Services
         /// <param name="input">使用者輸入參數</param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        public async Task GetRangeAsync(string stockNumber, long chatID, string? input, CancellationToken cancellationToken)
+        public async Task GetRangeAsync(string stockNumber, Message message, string? input, CancellationToken cancellationToken)
         {
             try
             {
@@ -156,7 +156,7 @@ namespace Telegram.Bot.Examples.WebHook.Services
                 _logger.LogInformation("擷取網站中...");
                 Stream stream = new MemoryStream(await page.Locator("//div[@class= 'chart-markup-table']").ScreenshotAsync());
                 await _botClient.SendPhotoAsync(
-                   chatId: chatID,
+                   chatId: message.Chat.Id,
                    photo: InputFile.FromStream(stream),
                    parseMode: ParseMode.Html,
                    cancellationToken: cancellationToken);
@@ -165,8 +165,8 @@ namespace Telegram.Bot.Examples.WebHook.Services
             }
             catch (Exception ex)
             {
-                _logger.LogInformation("GetRangeAsync：" + ex.Message);
-                await ErrorNotify("GetRangeAsync：" + ex.Message, cancellationToken);
+                _logger.LogError("GetRangeAsync：" + ex.Message);
+                await ErrorNotify(message, "GetRangeAsync：" + ex.Message, cancellationToken);
             }
             finally
             {

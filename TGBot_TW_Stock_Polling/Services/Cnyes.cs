@@ -51,10 +51,10 @@ namespace Telegram.Bot.Examples.WebHook.Services
         /// <param name="errorMessage"></param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        public async Task ErrorNotify(ChatId chatId, string errorMessage, CancellationToken cancellationToken)
+        public async Task ErrorNotify(Message message, string errorMessage, CancellationToken cancellationToken)
         {
             await _botClient.SendTextMessageAsync(
-                text: $"使用者:{chatId}/錯誤:{errorMessage}",
+                text: $"Message:{message}/錯誤:{errorMessage}",
                 chatId: 806077724,
                 parseMode: ParseMode.Html,
                 cancellationToken: cancellationToken);
@@ -64,11 +64,10 @@ namespace Telegram.Bot.Examples.WebHook.Services
         /// 取得K線
         /// </summary>
         /// <param name="stockNumber">股票代號</param>
-        /// <param name="chatID">使用者ID</param>
         /// <param name="input">使用者輸入參數</param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        public async Task GetKlineAsync(string stockNumber, long chatID, string? input, CancellationToken cancellationToken)
+        public async Task GetKlineAsync(string stockNumber, Message message, string? input, CancellationToken cancellationToken)
         {
             try
             {
@@ -94,7 +93,7 @@ namespace Telegram.Bot.Examples.WebHook.Services
                 Stream stream = new MemoryStream(await page.Locator("//div[@class= 'jsx-3625047685 tradingview-chart']").ScreenshotAsync());
                 await _botClient.SendPhotoAsync(
                     caption: $"{stockName}：{input}線圖　💹",
-                    chatId: chatID,
+                    chatId: message.Chat.Id,
                     photo: InputFile.FromStream(stream),
                     parseMode: ParseMode.Html,
                     cancellationToken: cancellationToken);
@@ -102,8 +101,8 @@ namespace Telegram.Bot.Examples.WebHook.Services
             }
             catch (Exception ex)
             {
-                _logger.LogInformation("GetKlineAsync：" + ex.Message);
-                await ErrorNotify(chatID, "GetKlineAsync：" + ex.Message, cancellationToken);
+                _logger.LogError("GetKlineAsync：" + ex.Message);
+                await ErrorNotify(message, "GetKlineAsync：" + ex.Message, cancellationToken);
             }
             finally
             {
@@ -115,10 +114,9 @@ namespace Telegram.Bot.Examples.WebHook.Services
         /// 取得詳細報價
         /// </summary>
         /// <param name="stockNumber">股票代號</param>
-        /// <param name="chatID">使用者ID</param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        public async Task GetDetialPriceAsync(string stockNumber, long chatID, CancellationToken cancellationToken)
+        public async Task GetDetialPriceAsync(string stockNumber, Message message, CancellationToken cancellationToken)
         {
             try
             {
@@ -195,7 +193,7 @@ namespace Telegram.Bot.Examples.WebHook.Services
                     await page.Locator("//html//body//div[1]//div[1]//div[4]//div[2]//div[1]//div[1]").First.ScreenshotAsync());
                 await _botClient.SendPhotoAsync(
                    caption: chart.ToString(),
-                   chatId: chatID,
+                    chatId: message.Chat.Id,
                    photo: InputFile.FromStream(stream),
                    parseMode: ParseMode.Html,
                    cancellationToken: cancellationToken);
@@ -203,8 +201,8 @@ namespace Telegram.Bot.Examples.WebHook.Services
             }
             catch (Exception ex)
             {
-                _logger.LogInformation("GetDetialPriceAsync：" + ex.Message);
-                await ErrorNotify(chatID, "GetDetialPriceAsync：" + ex.Message, cancellationToken);
+                _logger.LogError("GetDetialPriceAsync：" + ex.Message);
+                await ErrorNotify(message, "GetDetialPriceAsync：" + ex.Message, cancellationToken);
             }
             finally
             {
@@ -219,7 +217,7 @@ namespace Telegram.Bot.Examples.WebHook.Services
         /// <param name="chatID">使用者ID</param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        public async Task GetPerformanceAsync(string stockNumber, long chatID, CancellationToken cancellationToken)
+        public async Task GetPerformanceAsync(string stockNumber, Message message, CancellationToken cancellationToken)
         {
             try
             {
@@ -262,7 +260,7 @@ namespace Telegram.Bot.Examples.WebHook.Services
                 var stream = new MemoryStream(price);
                 await _botClient.SendPhotoAsync(
                     caption: $"{stockName} 績效表現　✨",
-                    chatId: chatID,
+                    chatId: message.Chat.Id,
                     photo: InputFile.FromStream(stream),
                     parseMode: ParseMode.Html,
                     cancellationToken: cancellationToken);
@@ -270,8 +268,8 @@ namespace Telegram.Bot.Examples.WebHook.Services
             }
             catch (Exception ex)
             {
-                _logger.LogInformation("GetPerformanceAsync：" + ex.Message);
-                await ErrorNotify(chatID, "GetPerformanceAsync：" + ex.Message, cancellationToken);
+                _logger.LogError("GetPerformanceAsync：" + ex.Message);
+                await ErrorNotify(message, "GetPerformanceAsync：" + ex.Message, cancellationToken);
             }
             finally
             {
@@ -287,7 +285,7 @@ namespace Telegram.Bot.Examples.WebHook.Services
         /// <param name="input">使用者輸入參數</param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        public async Task GetNewsAsync(string stockNumber, long chatID, CancellationToken cancellationToken)
+        public async Task GetNewsAsync(string stockNumber, Message message, CancellationToken cancellationToken)
         {
             try
             {
@@ -320,7 +318,7 @@ namespace Telegram.Bot.Examples.WebHook.Services
                 InlineKeyboardMarkup inlineKeyboard = new(InlineList);
                 var s = inlineKeyboard.InlineKeyboard;
                 await _botClient.SendTextMessageAsync(
-                    chatId: chatID,
+                    chatId: message.Chat.Id,
                     text: @$"⚡️{stockName}-即時新聞",
                     replyMarkup: inlineKeyboard,
                     cancellationToken: cancellationToken);
@@ -328,8 +326,8 @@ namespace Telegram.Bot.Examples.WebHook.Services
             }
             catch (Exception ex)
             {
-                _logger.LogInformation("GetNewsAsync：" + ex.Message);
-                await ErrorNotify(chatID, "GetNewsAsync：" + ex.Message, cancellationToken);
+                _logger.LogError("GetNewsAsync：" + ex.Message);
+                await ErrorNotify(message, "GetNewsAsync：" + ex.Message, cancellationToken);
             }
             finally
             {
