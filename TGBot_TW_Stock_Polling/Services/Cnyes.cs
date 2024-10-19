@@ -75,8 +75,6 @@ namespace Telegram.Bot.Examples.WebHook.Services
         {
             try
             {
-                await ErrorNotify(message, "GetKlineAsync：" , cancellationToken);
-
                 //載入網頁
                 var page = await LoadUrl(stockNumber);
 
