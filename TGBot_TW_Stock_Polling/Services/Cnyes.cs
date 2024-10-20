@@ -1,11 +1,9 @@
 ﻿using Microsoft.Playwright;
-using Telegram.Bot.Types.Enums;
-using Telegram.Bot.Types;
 using System.Text;
+using Telegram.Bot.Types;
+using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types.ReplyMarkups;
 using TGBot_TW_Stock_Polling.Interface;
-using System.Text.Json;
-using TGBot_TW_Stock_Polling.Dto;
 
 namespace Telegram.Bot.Examples.WebHook.Services
 {
@@ -18,6 +16,8 @@ namespace Telegram.Bot.Examples.WebHook.Services
         private readonly ILogger<Cnyes> _logger;
         private readonly IBrowserHandlers _browserHandlers;
         private readonly IBotService _botService;
+        private string stockUrl = "https://www.cnyes.com/twstock/";
+
 
         public Cnyes(ITelegramBotClient botClient, ILogger<Cnyes> logger, IBrowserHandlers browserHandlers, IBotService botService)
         {
@@ -25,28 +25,6 @@ namespace Telegram.Bot.Examples.WebHook.Services
             _logger = logger;
             _browserHandlers = browserHandlers;
             _botService = botService;
-        }
-
-        /// <summary>
-        /// 載入網頁
-        /// </summary>
-        /// <param name="stockNumber"></param>
-        /// <returns></returns>
-        public async Task<IPage> LoadUrl(string stockNumber)
-        {
-            try 
-            {
-                var url = $"https://www.cnyes.com/twstock/{stockNumber}";
-                var page = await _browserHandlers.LoadUrl(url);
-                if (page == null) throw new Exception("初始化瀏覽器錯誤");
-
-                return page;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError($"載入網頁時發生錯誤: {ex.Message}");
-                throw;
-            }
         }
 
         /// <summary>
@@ -61,7 +39,7 @@ namespace Telegram.Bot.Examples.WebHook.Services
             try
             {
                 //載入網頁
-                var page = await LoadUrl(stockNumber);
+                var page = await _browserHandlers.LoadUrl(stockUrl + stockNumber);
 
                 //等待圖表載入
                 await page.WaitForSelectorAsync("//html//body//div[1]//div[1]//div[4]//div[2]//div[1]//div[1]//div[2]//div//div[2]//div[1]//div//div//div//div[2]//table").WaitAsync(new TimeSpan(0, 1, 0));
@@ -110,7 +88,7 @@ namespace Telegram.Bot.Examples.WebHook.Services
             try
             {
                 //載入網頁
-                var page = await LoadUrl(stockNumber);
+                var page = await _browserHandlers.LoadUrl(stockUrl + stockNumber);
 
                 //股價資訊
                 var InfoDic = new Dictionary<int, string>()
@@ -126,8 +104,6 @@ namespace Telegram.Bot.Examples.WebHook.Services
                     { 25, "年股利"},{ 26, "殖利率"},{ 27, "淨利率"},
                 };
 
-                
-                //await _browserHandlers._page.GetByRole(AriaRole.Button, new() { Name = "日K" }).ClickAsync();
 
                 //等待圖表載入
                 await page.WaitForSelectorAsync("//html//body//div[1]//div[1]//div[4]//div[2]//div[1]//div[1]//div[2]//div//div[2]//div[1]//div//div//div//div[2]//table").WaitAsync(new TimeSpan(0, 1, 0));
@@ -143,7 +119,6 @@ namespace Telegram.Bot.Examples.WebHook.Services
                 var stockName = textContent.Split("\n").ToList()[0];
 
                 //詳細報價
-                //var temp_returnStockUD = await page.QuerySelectorAllAsync("//html//body//div[1]//div[1]//div[4]//div[2]//div[1]//div[1]//div[1]//div//div[3]//div[2]");
                 var temp_returnStockUD = await page.QuerySelectorAllAsync("//html//body//div[1]//div[1]//div[4]//div[2]//div[1]//div[1]//div[1]//div//div[4]//div[2]");
 
                 var returnStockUD = await temp_returnStockUD[0].InnerTextAsync();
@@ -205,7 +180,6 @@ namespace Telegram.Bot.Examples.WebHook.Services
         /// 取得績效
         /// </summary>
         /// <param name="stockNumber">股票代號</param>
-        /// <param name="chatID">使用者ID</param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
         public async Task GetPerformanceAsync(string stockNumber, Message message, CancellationToken cancellationToken)
@@ -213,11 +187,11 @@ namespace Telegram.Bot.Examples.WebHook.Services
             try
             {
                 //載入網頁
-                var page = await LoadUrl(stockNumber);
-                
+                var page = await _browserHandlers.LoadUrl(stockUrl + stockNumber);
+
                 //點選cookie提示按鈕
                 var cookiebutton = await page.QuerySelectorAsync("#__next > div._1GCLL > div > button._122qv");
-                if (cookiebutton != null) 
+                if (cookiebutton != null)
                     await cookiebutton.ClickAsync();
 
                 //滾動網頁至最下方，觸發js
@@ -272,8 +246,6 @@ namespace Telegram.Bot.Examples.WebHook.Services
         /// 取得新聞
         /// </summary>
         /// <param name="stockNumber">股票代號</param>
-        /// <param name="chatID">使用者ID</param>
-        /// <param name="input">使用者輸入參數</param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
         public async Task GetNewsAsync(string stockNumber, Message message, CancellationToken cancellationToken)
@@ -281,7 +253,7 @@ namespace Telegram.Bot.Examples.WebHook.Services
             try
             {
                 //載入網頁
-                var page = await LoadUrl(stockNumber);
+                var page = await _browserHandlers.LoadUrl(stockUrl + stockNumber);
 
                 //拆解元素
                 var element = await page.QuerySelectorAsync("//html//body//div[1]//div[1]//div[4]//div[2]//div[1]//div[1]//div[1]//div//div[2]//div[2]//h2");
@@ -299,7 +271,7 @@ namespace Telegram.Bot.Examples.WebHook.Services
                 var InlineList = new List<IEnumerable<InlineKeyboardButton>>();
                 for (int i = 0; i < 5; i++)
                 {
-                    if(newsContent[i] == null) continue;
+                    if (newsContent[i] == null) continue;
                     var text = await newsContent[i].TextContentAsync() ?? string.Empty;
                     var url = await newsContent[i].GetAttributeAsync("href") ?? string.Empty;
                     if (string.IsNullOrEmpty(url) || string.IsNullOrEmpty(text)) continue;
@@ -318,7 +290,7 @@ namespace Telegram.Bot.Examples.WebHook.Services
             catch (Exception ex)
             {
                 _logger.LogError("GetNewsAsync：" + ex.Message);
-                throw new Exception("GetPerformanceAsync：" + ex.Message);
+                throw new Exception("GetNewsAsync：" + ex.Message);
             }
             finally
             {

@@ -14,6 +14,7 @@ namespace Telegram.Bot.Examples.WebHook.Services
         private readonly ILogger<TradingView> _logger;
         private readonly IBrowserHandlers _browserHandlers;
         private readonly IBotService _botService;
+        private string stockUrl = "https://tw.tradingview.com/chart/?symbol=TWSE%3A";
 
         public TradingView(ITelegramBotClient botClient, ILogger<TradingView> logger, IBrowserHandlers browserHandlers, IBotService botService)
         {
@@ -21,27 +22,6 @@ namespace Telegram.Bot.Examples.WebHook.Services
             _logger = logger;
             _browserHandlers = browserHandlers;
             _botService = botService;
-        }
-
-        /// <summary>
-        /// 載入網頁
-        /// </summary>
-        /// <param name="stockNumber"></param>
-        /// <returns></returns>
-        public async Task<IPage> LoadUrl(string stockNumber)
-        {
-            try
-            {
-                var url = $"https://tw.tradingview.com/chart/?symbol=TWSE%3A{stockNumber}/";
-                var page = await _browserHandlers.LoadUrl(url);
-
-                return page;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError($"載入網頁時發生錯誤: {ex.Message}");
-                throw;
-            }
         }
 
         /// <summary>
@@ -56,7 +36,7 @@ namespace Telegram.Bot.Examples.WebHook.Services
             try
             {
                 //載入網頁
-                var page = await LoadUrl(stockNumber);
+                var page = await _browserHandlers.LoadUrl(stockUrl + stockNumber);
 
                 //等待元素載入
                 await page.WaitForSelectorAsync("//div[@class= 'chart-markup-table']");
@@ -96,7 +76,7 @@ namespace Telegram.Bot.Examples.WebHook.Services
             try
             {
                 //載入網頁
-                var page = await LoadUrl(stockNumber);
+                var page = await _browserHandlers.LoadUrl(stockUrl + stockNumber);
 
                 string range;
 
