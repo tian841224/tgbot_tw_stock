@@ -44,6 +44,8 @@ try
     builder.Services.AddSingleton<ReceiverService>();
     builder.Services.AddTransient<IBrowserHandlers, BrowserHandlers>();
     builder.Services.AddTransient<IBotService, BotService>();
+    builder.Services.AddTransient<TradingView>();
+    builder.Services.AddTransient<Cnyes>();
     builder.Services.AddTransient<Lazy<TradingView>>();
     builder.Services.AddTransient<Lazy<Cnyes>>();
 
