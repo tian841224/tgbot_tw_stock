@@ -1,5 +1,4 @@
-﻿using Microsoft.Playwright;
-using Telegram.Bot.Types;
+﻿using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 using TGBot_TW_Stock_Polling.Interface;
 
