@@ -79,7 +79,7 @@ namespace Telegram.Bot.Examples.WebHook.Services
 
                 //圖表
                 _logger.LogInformation("擷取網站中...");
-                Stream stream = new MemoryStream(await page.Locator("//div[@class= 'jsx-3625047685 tradingview-chart']").ScreenshotAsync());
+                Stream stream = new MemoryStream(await page.Locator("//div[@class= 'jsx-3777377768 tradingview-chart']").ScreenshotAsync());
                 await _botClient.SendPhotoAsync(
                     caption: $"{stockName}：{input}線圖　💹",
                     chatId: message.Chat.Id,
@@ -143,7 +143,9 @@ namespace Telegram.Bot.Examples.WebHook.Services
                 var stockName = textContent.Split("\n").ToList()[0];
 
                 //詳細報價
-                var temp_returnStockUD = await page.QuerySelectorAllAsync("//html//body//div[1]//div[1]//div[4]//div[2]//div[1]//div[1]//div[1]//div//div[3]//div[2]");
+                //var temp_returnStockUD = await page.QuerySelectorAllAsync("//html//body//div[1]//div[1]//div[4]//div[2]//div[1]//div[1]//div[1]//div//div[3]//div[2]");
+                var temp_returnStockUD = await page.QuerySelectorAllAsync("//html//body//div[1]//div[1]//div[4]//div[2]//div[1]//div[1]//div[1]//div//div[4]//div[2]");
+
                 var returnStockUD = await temp_returnStockUD[0].InnerTextAsync();
                 var StockUD_List = returnStockUD.Split("\n");
 
