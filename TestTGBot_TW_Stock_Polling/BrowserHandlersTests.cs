@@ -1,8 +1,8 @@
 ﻿using Microsoft.Extensions.Logging;
 using Microsoft.Playwright;
 using Moq;
-using Telegram.Bot.Examples.WebHook.Services;
 using TGBot_TW_Stock_Polling.Interface;
+using TGBot_TW_Stock_Polling.Services;
 
 namespace TestTGBot_TW_Stock_Polling
 {

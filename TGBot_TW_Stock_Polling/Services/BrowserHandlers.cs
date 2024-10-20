@@ -1,7 +1,7 @@
 ﻿using Microsoft.Playwright;
 using TGBot_TW_Stock_Polling.Interface;
 
-namespace Telegram.Bot.Examples.WebHook.Services
+namespace TGBot_TW_Stock_Polling.Services
 {
     public class BrowserHandlers : IBrowserHandlers
     {
@@ -9,7 +9,6 @@ namespace Telegram.Bot.Examples.WebHook.Services
         private IPlaywright? _playwright = null;
         private IBrowser? _browser = null;
         private IPage? _page = null;
-        //private DateTime _lastAccessTime;
         private readonly TimeSpan _timeout = TimeSpan.FromMinutes(5);
 
 
@@ -78,7 +77,7 @@ namespace Telegram.Bot.Examples.WebHook.Services
                 await SettingBrowser();
                 await SettingPage();
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 throw new Exception($"CreateBrowser : {ex.Message}");
             }
@@ -162,7 +161,7 @@ namespace Telegram.Bot.Examples.WebHook.Services
                         throw new Exception("初始化Page錯誤");
                     }
                 }
-                    
+
 
                 //設定頁面大小
                 await _page.SetViewportSizeAsync(1920, 1080);

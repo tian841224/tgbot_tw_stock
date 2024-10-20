@@ -1,6 +1,7 @@
-using Telegram.Bot.Abstract;
+using Telegram.Bot;
+using TGBot_TW_Stock_Polling.Abstract;
 
-namespace Telegram.Bot.Services;
+namespace TGBot_TW_Stock_Polling.Services;
 
 // Compose Receiver and UpdateHandler implementation
 public class ReceiverService : ReceiverServiceBase<UpdateHandler>
