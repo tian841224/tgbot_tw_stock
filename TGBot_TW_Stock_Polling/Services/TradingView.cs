@@ -32,7 +32,7 @@ namespace Telegram.Bot.Examples.WebHook.Services
         {
             try
             {
-                var url = $"https://www.cnyes.com/twstock/{stockNumber}";
+                var url = $"https://tw.tradingview.com/chart/?symbol=TWSE%3A{stockNumber}/";
                 var page = await _browserHandlers.LoadUrl(url);
 
                 return page;
