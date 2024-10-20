@@ -1,23 +1,23 @@
 ﻿using Microsoft.Extensions.Logging;
-using Telegram.Bot.Examples.WebHook.Services;
+using Telegram.Bot;
 using Telegram.Bot.Exceptions;
 using Telegram.Bot.Polling;
 using Telegram.Bot.Types;
 using TGBot_TW_Stock_Polling.Dto;
 using TGBot_TW_Stock_Polling.Interface;
 
-namespace Telegram.Bot.Services;
+namespace TGBot_TW_Stock_Polling.Services;
 
 public class UpdateHandler : IUpdateHandler
 {
     private readonly ITelegramBotClient _botClient;
     private readonly ILogger<UpdateHandler> _logger;
     private readonly IBotService _botService;
-    private readonly TradingView _tradingView;
-    private readonly Cnyes _cnyes;
+    private readonly Lazy<TradingView> _tradingView;
+    private readonly Lazy<Cnyes> _cnyes;
 
     public UpdateHandler(ITelegramBotClient botClient, ILogger<UpdateHandler> logger,
-                          TradingView tradingView, Cnyes cnyes, IBotService botService)
+                          Lazy<TradingView> tradingView, Lazy<Cnyes> cnyes, IBotService botService)
     {
         _botClient = botClient;
         _logger = logger;
@@ -95,7 +95,7 @@ public class UpdateHandler : IUpdateHandler
         {
             _logger.LogError($"Error:{ex.Message}");
             _logger.LogError($"UserId：{message.Chat.Id}\n" + $"Username：{message.Chat.Username}\n");
-            await _botService.ErrorNotify(message,  ex.Message, cancellationToken);
+            await _botService.ErrorNotify(message, ex.Message, cancellationToken);
         }
     }
 
@@ -111,24 +111,24 @@ public class UpdateHandler : IUpdateHandler
             switch (command)
             {
                 case "/chart":
-                    await _tradingView.GetChartAsync(stockNumber, message, cancellationToken);
+                    await _tradingView.Value.GetChartAsync(stockNumber, message, cancellationToken);
                     break;
                 case "/range":
                     var range = parts.Length > 2 ? parts[2] : null;
-                    await _tradingView.GetRangeAsync(stockNumber, message, range, cancellationToken);
+                    await _tradingView.Value.GetRangeAsync(stockNumber, message, range, cancellationToken);
                     break;
                 case "/k":
                     var kRange = parts.Length > 2 ? GetKRange(parts[2]) : "日K";
-                    await _cnyes.GetKlineAsync(stockNumber, message, kRange, cancellationToken);
+                    await _cnyes.Value.GetKlineAsync(stockNumber, message, kRange, cancellationToken);
                     break;
                 case "/v":
-                    await _cnyes.GetDetialPriceAsync(stockNumber, message, cancellationToken);
+                    await _cnyes.Value.GetDetialPriceAsync(stockNumber, message, cancellationToken);
                     break;
                 case "/p":
-                    await _cnyes.GetPerformanceAsync(stockNumber, message, cancellationToken);
+                    await _cnyes.Value.GetPerformanceAsync(stockNumber, message, cancellationToken);
                     break;
                 case "/n":
-                    await _cnyes.GetNewsAsync(stockNumber, message, cancellationToken);
+                    await _cnyes.Value.GetNewsAsync(stockNumber, message, cancellationToken);
                     break;
             }
         }
