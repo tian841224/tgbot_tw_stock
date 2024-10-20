@@ -61,9 +61,8 @@ namespace Telegram.Bot.Examples.WebHook.Services
             }
             catch (Exception ex)
             {
-                var a = ex.GetType();
                 _logger.LogError($"載入網頁時發生錯誤: {ex.Message}");
-                throw;
+                throw new Exception($"LoadUrl : {ex.Message}");
             }
         }
 
@@ -73,9 +72,16 @@ namespace Telegram.Bot.Examples.WebHook.Services
         /// <returns></returns>
         private async Task CreateBrowser()
         {
-            await LunchesPlaywright();
-            await SettingBrowser();
-            await SettingPage();
+            try
+            {
+                await LunchesPlaywright();
+                await SettingBrowser();
+                await SettingPage();
+            }
+            catch(Exception ex)
+            {
+                throw new Exception($"CreateBrowser : {ex.Message}");
+            }
         }
 
         /// <summary>
@@ -108,7 +114,7 @@ namespace Telegram.Bot.Examples.WebHook.Services
                     {
                         //路徑會依瀏覽器版本不同有差異，若有錯時請修正路徑
                         //使用docker執行時須使用下面參數，本機直接執行則不用
-                        // ExecutablePath = "/root/.cache/ms-playwright/chromium-1055/chrome-linux/chrome",
+                        //ExecutablePath = "/root/.cache/ms-playwright/chromium-1055/chrome-linux/chrome",
                         Args = new[] {
                             "--disable-dev-shm-usage",
                             "--disable-setuid-sandbox",
@@ -124,6 +130,7 @@ namespace Telegram.Bot.Examples.WebHook.Services
             catch (Exception ex)
             {
                 _logger.LogError("SettingBrowser：" + ex.Message);
+                throw;
             }
         }
 
@@ -140,19 +147,27 @@ namespace Telegram.Bot.Examples.WebHook.Services
                 if (_browser == null)
                 {
                     await SettingBrowser();
+                    if (_browser == null)
+                    {
+                        throw new Exception("初始化Browser錯誤");
+                    }
                 }
 
-                if (_browser != null)
+                //新增頁面
+                if (_page == null)
                 {
-                    //新增頁面
+                    _page = await _browser.NewPageAsync();
                     if (_page == null)
-                        _page = await _browser.NewPageAsync();
-
-                    //設定頁面大小
-                    await _page.SetViewportSizeAsync(1920, 1080);
-
-                    _logger.LogInformation($"設定頁面完成");
+                    {
+                        throw new Exception("初始化Page錯誤");
+                    }
                 }
+                    
+
+                //設定頁面大小
+                await _page.SetViewportSizeAsync(1920, 1080);
+
+                _logger.LogInformation($"設定頁面完成");
 
             }
             catch (Exception ex)

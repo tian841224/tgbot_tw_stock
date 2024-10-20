@@ -13,6 +13,7 @@ namespace TestTGBot_TW_Stock_Polling
         private Mock<IBrowserHandlers> _mockBrowserHandlers = null!;
         private Mock<ILogger<Cnyes>> _mockLogger = null!;
         private Mock<ITelegramBotClient> _mockbotClient = null!;
+        private Mock<IBotService> _mockBotService = null!;
         private Cnyes _cnyes = null!;
 
         [TestInitialize]
@@ -21,7 +22,8 @@ namespace TestTGBot_TW_Stock_Polling
             _mockBrowserHandlers = new Mock<IBrowserHandlers>();
             _mockLogger = new Mock<ILogger<Cnyes>>();
             _mockbotClient = new Mock<ITelegramBotClient>();
-            _cnyes = new Cnyes(_mockbotClient.Object, _mockLogger.Object, _mockBrowserHandlers.Object);
+            _mockBotService = new Mock<IBotService>();
+            _cnyes = new Cnyes(_mockbotClient.Object, _mockLogger.Object, _mockBrowserHandlers.Object, _mockBotService.Object);
         }
 
         [TestMethod]
