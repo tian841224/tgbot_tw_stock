@@ -1,11 +1,12 @@
 ﻿using Microsoft.Playwright;
 using System.Text;
+using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types.ReplyMarkups;
 using TGBot_TW_Stock_Polling.Interface;
 
-namespace Telegram.Bot.Examples.WebHook.Services
+namespace TGBot_TW_Stock_Polling.Services
 {
     /// <summary>
     /// 鉅亨網

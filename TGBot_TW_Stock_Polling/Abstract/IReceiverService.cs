@@ -1,4 +1,4 @@
-namespace Telegram.Bot.Abstract;
+namespace TGBot_TW_Stock_Polling.Abstract;
 
 /// <summary>
 /// A marker interface for Update Receiver service

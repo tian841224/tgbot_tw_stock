@@ -1,8 +1,6 @@
 using NLog;
 using NLog.Extensions.Logging;
 using Telegram.Bot;
-using Telegram.Bot.Examples.WebHook.Services;
-using Telegram.Bot.Services;
 using TGBot_TW_Stock_Polling.Interface;
 using TGBot_TW_Stock_Polling.Services;
 
@@ -21,8 +19,6 @@ try
 {
     var builder = WebApplication.CreateBuilder(args);
 
-    var apikey = builder.Configuration["BotConfiguration:BotToken"];
-
     // 設定NLog
     builder.Services.AddLogging(logging =>
     {
@@ -35,6 +31,7 @@ try
     builder.Services.AddEndpointsApiExplorer();
 
     // 設定TelegramBotClient
+    var apikey = builder.Configuration["BotConfiguration:BotToken"];
     builder.Services.AddHttpClient("telegram_bot_client")
             .AddTypedClient<ITelegramBotClient>((httpClient, sp) =>
             {
@@ -42,13 +39,13 @@ try
                 return new TelegramBotClient(options, httpClient);
             });
     //builder.Services.AddHostedService<InitService>();
-    builder.Services.AddScoped<IBrowserHandlers, BrowserHandlers>();
-    builder.Services.AddScoped<IBotService, BotService>();
-    builder.Services.AddScoped<TradingView>();
-    builder.Services.AddScoped<Cnyes>();
-    builder.Services.AddScoped<UpdateHandler>();
-    builder.Services.AddScoped<ReceiverService>();
     builder.Services.AddHostedService<PollingService>();
+    builder.Services.AddSingleton<UpdateHandler>();
+    builder.Services.AddSingleton<ReceiverService>();
+    builder.Services.AddTransient<IBrowserHandlers, BrowserHandlers>();
+    builder.Services.AddTransient<IBotService, BotService>();
+    builder.Services.AddTransient<Lazy<TradingView>>();
+    builder.Services.AddTransient<Lazy<Cnyes>>();
 
     var app = builder.Build();
 
