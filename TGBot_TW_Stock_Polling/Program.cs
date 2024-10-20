@@ -23,6 +23,7 @@ try
 
     var apikey = builder.Configuration["BotConfiguration:BotToken"];
 
+    // 設定NLog
     builder.Services.AddLogging(logging =>
     {
         logging.ClearProviders();
@@ -32,6 +33,8 @@ try
 
     builder.Services.AddControllers();
     builder.Services.AddEndpointsApiExplorer();
+
+    // 設定TelegramBotClient
     builder.Services.AddHttpClient("telegram_bot_client")
             .AddTypedClient<ITelegramBotClient>((httpClient, sp) =>
             {
