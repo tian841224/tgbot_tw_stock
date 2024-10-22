@@ -11,35 +11,9 @@ namespace TGBot_TW_Stock_Polling.Services
         private IPage? _page = null;
         private readonly TimeSpan _timeout = TimeSpan.FromMinutes(5);
 
-
         public BrowserHandlers(ILogger<BrowserHandlers> logger)
         {
             _logger = logger;
-        }
-
-        /// <summary>
-        /// 取得頁面
-        /// </summary>
-        /// <returns></returns>
-        public async Task<IPage> GetPageAsync()
-        {
-
-            if (_playwright == null || _browser == null || _page == null) await CreateBrowser();
-
-            if (_page == null) throw new Exception("初始化Page錯誤");
-
-            return _page;
-        }
-
-        /// <summary>
-        /// 釋放瀏覽器流程
-        /// </summary>
-        /// <returns></returns>
-        public async Task ReleaseBrowser()
-        {
-            await ClosePage();
-            await CloseBrowser();
-            ClosePlaywright();
         }
 
         /// <summary>
@@ -47,13 +21,13 @@ namespace TGBot_TW_Stock_Polling.Services
         /// </summary>
         /// <param name="stockNumber"></param>
         /// <returns></returns>
-        public async Task<IPage> LoadUrl(string url)
+        public async Task<IPage> LoadUrlAsync(string url)
         {
             try
             {
                 var page = await GetPageAsync();
                 await page.GotoAsync($"{url}",
-                            new PageGotoOptions { WaitUntil = WaitUntilState.Load, Timeout = 60000 });
+                            new PageGotoOptions { WaitUntil = WaitUntilState.Load, Timeout = _timeout.Milliseconds });
 
                 _logger.LogInformation("等待元素載入...");
                 return page;
@@ -66,20 +40,46 @@ namespace TGBot_TW_Stock_Polling.Services
         }
 
         /// <summary>
-        /// 啟動瀏覽器流程
+        /// 釋放瀏覽器流程
         /// </summary>
         /// <returns></returns>
-        private async Task CreateBrowser()
+        public async Task ReleaseBrowser()
         {
             try
             {
-                await LunchesPlaywright();
-                await SettingBrowser();
-                await SettingPage();
+                await ClosePage();
+                await CloseBrowser();
+                ClosePlaywright();
             }
-            catch (Exception ex)
+            catch
             {
-                throw new Exception($"CreateBrowser : {ex.Message}");
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// 取得頁面
+        /// </summary>
+        /// <returns></returns>
+        private async Task<IPage> GetPageAsync()
+        {
+            try
+            {
+                if (_page == null)
+                {
+                    await CreateBrowserAsync();
+                }
+
+                if (_page == null)
+                {
+                    throw new InvalidOperationException("未能初始化 Page。");
+                }
+
+                return _page;
+            }
+            catch
+            {
+                throw;
             }
         }
 
@@ -87,27 +87,40 @@ namespace TGBot_TW_Stock_Polling.Services
         /// 啟動套件
         /// </summary>
         /// <returns></returns>
-        public async Task LunchesPlaywright()
+        private async Task LaunchPlaywrightAsync()
         {
-            if (_playwright == null)
+            _logger.LogInformation("初始化Playwright");
+
+            try
             {
-                _playwright = await Playwright.CreateAsync();
+                if (_playwright == null)
+                    _playwright = await Playwright.CreateAsync();
+
+                if (_playwright == null)
+                    throw new Exception("初始化Playwright錯誤");
             }
+            catch (Exception ex)
+            {
+                _logger.LogError("LaunchPlaywright：" + ex.Message);
+                throw new Exception("LaunchPlaywright：" + ex.Message);
+            }
+
         }
 
         /// <summary>
         /// 設定瀏覽器
         /// </summary>
         /// <returns></returns>
-        private async Task SettingBrowser()
+        private async Task SetupBrowserAsync()
         {
+            _logger.LogInformation("設定瀏覽器");
+
             try
             {
-                _logger.LogInformation($"設定瀏覽器");
+                if (_playwright == null)
+                    throw new Exception("Playwright not initialized");
 
-                if (_playwright == null) await LunchesPlaywright();
-
-                if (_playwright != null && _browser == null)
+                if (_browser == null)
                 {
                     _browser = await _playwright.Chromium.LaunchAsync(new BrowserTypeLaunchOptions
                     {
@@ -124,12 +137,11 @@ namespace TGBot_TW_Stock_Polling.Services
                         Timeout = 0,
                     });
                 }
-                _logger.LogInformation($"瀏覽器設定完成");
             }
             catch (Exception ex)
             {
-                _logger.LogError("SettingBrowser：" + ex.Message);
-                throw;
+                _logger.LogError("SetupBrowser：" + ex.Message);
+                throw new Exception("SetupBrowser：" + ex.Message);
             }
         }
 
@@ -137,41 +149,49 @@ namespace TGBot_TW_Stock_Polling.Services
         /// 設定頁面
         /// </summary>
         /// <returns></returns>
-        private async Task SettingPage()
+        private async Task SetupPageAsync()
         {
+            _logger.LogInformation("設定頁面中");
+
             try
             {
-                _logger.LogInformation($"設定頁面中");
-
                 if (_browser == null)
-                {
-                    await SettingBrowser();
-                    if (_browser == null)
-                    {
-                        throw new Exception("初始化Browser錯誤");
-                    }
-                }
+                    throw new Exception("Browser not initialized");
 
                 //新增頁面
                 if (_page == null)
                 {
                     _page = await _browser.NewPageAsync();
-                    if (_page == null)
-                    {
-                        throw new Exception("初始化Page錯誤");
-                    }
-                }
 
+                    if (_page == null)
+                        throw new Exception("初始化Page錯誤");
+                }
 
                 //設定頁面大小
                 await _page.SetViewportSizeAsync(1920, 1080);
-
-                _logger.LogInformation($"設定頁面完成");
-
             }
             catch (Exception ex)
             {
-                _logger.LogError("SettingPage：" + ex.Message);
+                _logger.LogError("SetupPage：" + ex.Message);
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// 啟動瀏覽器流程
+        /// </summary>
+        /// <returns></returns>
+        private async Task CreateBrowserAsync()
+        {
+            try
+            {
+                await LaunchPlaywrightAsync();
+                await SetupBrowserAsync();
+                await SetupPageAsync();
+            }
+            catch
+            {
+                throw;
             }
         }
 
@@ -190,6 +210,7 @@ namespace TGBot_TW_Stock_Polling.Services
             catch (Exception ex)
             {
                 _logger.LogError($"關閉頁面時發生錯誤: {ex.Message}");
+                throw new Exception($"ClosePlaywright : {ex.Message}");
             }
         }
 
@@ -209,6 +230,7 @@ namespace TGBot_TW_Stock_Polling.Services
             catch (Exception ex)
             {
                 _logger.LogError($"關閉頁面時發生錯誤: {ex.Message}");
+                throw new Exception($"CloseBrowser : {ex.Message}");
             }
         }
 
@@ -227,6 +249,7 @@ namespace TGBot_TW_Stock_Polling.Services
             catch (Exception ex)
             {
                 _logger.LogError($"關閉頁面時發生錯誤: {ex.Message}");
+                throw new Exception($"ClosePage : {ex.Message}");
             }
         }
     }

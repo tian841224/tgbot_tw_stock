@@ -38,7 +38,6 @@ try
                 TelegramBotClientOptions options = new(apikey);
                 return new TelegramBotClient(options, httpClient);
             });
-    //builder.Services.AddHostedService<InitService>();
     builder.Services.AddHostedService<PollingService>();
     builder.Services.AddSingleton<UpdateHandler>();
     builder.Services.AddSingleton<ReceiverService>();
