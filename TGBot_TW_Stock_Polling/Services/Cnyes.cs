@@ -17,15 +17,19 @@ namespace TGBot_TW_Stock_Polling.Services
         private readonly ILogger<Cnyes> _logger;
         private readonly IBrowserHandlers _browserHandlers;
         private readonly IBotService _botService;
+        private readonly ICommonService _commonService;
+        private readonly int maxRetries = 3; // 最大重試次數
+        TimeSpan delay = TimeSpan.FromSeconds(3); // 每次重試的延遲時間
         private string stockUrl = "https://www.cnyes.com/twstock/";
 
 
-        public Cnyes(ITelegramBotClient botClient, ILogger<Cnyes> logger, IBrowserHandlers browserHandlers, IBotService botService)
+        public Cnyes(ITelegramBotClient botClient, ILogger<Cnyes> logger, IBrowserHandlers browserHandlers, IBotService botService, ICommonService commonService)
         {
             _botClient = botClient;
             _logger = logger;
             _browserHandlers = browserHandlers;
             _botService = botService;
+            _commonService = commonService;
         }
 
         /// <summary>
@@ -37,13 +41,7 @@ namespace TGBot_TW_Stock_Polling.Services
         /// <returns></returns>
         public async Task GetKlineAsync(string stockNumber, Message message, string? input, CancellationToken cancellationToken)
         {
-            const int maxRetries = 3; // 最大重試次數
-            int retryCount = 0;
-            TimeSpan delay = TimeSpan.FromSeconds(3); // 每次重試的延遲時間
-
-            while (true)
-            {
-                try
+            await _commonService.RetryAsync(async () =>
                 {
                     // 載入網頁
                     var page = await _browserHandlers.LoadUrlAsync(stockUrl + stockNumber);
@@ -75,34 +73,7 @@ namespace TGBot_TW_Stock_Polling.Services
                         cancellationToken: cancellationToken);
                     _logger.LogInformation("已傳送資訊");
 
-                    // 成功後跳出迴圈
-                    break;
-                }
-                catch (Exception ex)
-                {
-                    retryCount++;
-                    _logger.LogInformation($"GetKlineAsync 嘗試 {retryCount} 次失敗：{ex.Message}");
-
-                    if (retryCount >= maxRetries)
-                    {
-                        _logger.LogInformation($"GetKlineAsync 已達最大重試次數 ({maxRetries})，拋出例外。");
-                        await _botClient.SendTextMessageAsync(
-                            text: "因機器人部屬於國外，有時會無法讀取網頁，請將程式部屬至本機執行。",
-                            chatId: message.Chat.Id,
-                            parseMode: ParseMode.Html,
-                            cancellationToken: cancellationToken);
-                        _logger.LogInformation("已傳送資訊");
-                        throw new Exception($"GetKlineAsync 失敗：{ex.Message}");
-                    }
-
-                    _logger.LogInformation($"等待 {delay.TotalSeconds} 秒後重試...");
-                    await Task.Delay(delay, cancellationToken);
-                }
-                finally
-                {
-                    await _browserHandlers.ReleaseBrowser();
-                }
-            }
+                }, maxRetries, delay, message, cancellationToken);
         }
 
         /// <summary>
@@ -113,13 +84,7 @@ namespace TGBot_TW_Stock_Polling.Services
         /// <returns></returns>
         public async Task GetDetialPriceAsync(string stockNumber, Message message, CancellationToken cancellationToken)
         {
-            const int maxRetries = 3; // 最大重試次數
-            int retryCount = 0;
-            TimeSpan delay = TimeSpan.FromSeconds(3); // 每次重試的延遲時間
-
-            while (true)
-            {
-                try
+            await _commonService.RetryAsync(async () =>
                 {
                     // 載入網頁
                     var page = await _browserHandlers.LoadUrlAsync(stockUrl + stockNumber);
@@ -197,34 +162,7 @@ namespace TGBot_TW_Stock_Polling.Services
                         cancellationToken: cancellationToken);
                     _logger.LogInformation("已傳送資訊");
 
-                    // 成功後跳出迴圈
-                    break;
-                }
-                catch (Exception ex)
-                {
-                    retryCount++;
-                    _logger.LogInformation($"GetDetialPriceAsync 嘗試 {retryCount} 次失敗：{ex.Message}");
-
-                    if (retryCount >= maxRetries)
-                    {
-                        _logger.LogInformation($"GetDetialPriceAsync 已達最大重試次數 ({maxRetries})，拋出例外。");
-                        await _botClient.SendTextMessageAsync(
-                           text: "因機器人部屬於雲端，有時會無法讀取網頁，請將程式部屬至本機執行。",
-                           chatId: message.Chat.Id,
-                           parseMode: ParseMode.Html,
-                           cancellationToken: cancellationToken);
-                        _logger.LogInformation("已傳送資訊");
-                        throw new Exception($"GetDetialPriceAsync 失敗：{ex.Message}");
-                    }
-
-                    _logger.LogInformation($"等待 {delay.TotalSeconds} 秒後重試...");
-                    await Task.Delay(delay, cancellationToken);
-                }
-                finally
-                {
-                    await _browserHandlers.ReleaseBrowser();
-                }
-            }
+                }, maxRetries, delay, message, cancellationToken);
         }
 
         /// <summary>
@@ -235,15 +173,8 @@ namespace TGBot_TW_Stock_Polling.Services
         /// <returns></returns>
         public async Task GetPerformanceAsync(string stockNumber, Message message, CancellationToken cancellationToken)
         {
-            const int maxRetries = 3; // 最大重試次數
-            int retryCount = 0;
-            TimeSpan delay = TimeSpan.FromSeconds(3); // 每次重試的延遲時間
-
-            while (true)
-            {
-                try
+            await _commonService.RetryAsync(async () =>
                 {
-                    //載入網頁
                     var page = await _browserHandlers.LoadUrlAsync(stockUrl + stockNumber);
 
                     //點選cookie提示按鈕
@@ -253,11 +184,11 @@ namespace TGBot_TW_Stock_Polling.Services
 
                     //滾動網頁至最下方，觸發js
                     await page.EvaluateAsync(@"() => {
-                        window.scrollTo({
-                            top: document.body.scrollHeight,
-                            behavior: 'smooth'
-                        });
-                        }");
+                                        window.scrollTo({
+                                            top: document.body.scrollHeight,
+                                            behavior: 'smooth'
+                                        });
+                                        }");
 
                     await page.WaitForTimeoutAsync(3000);
 
@@ -281,41 +212,14 @@ namespace TGBot_TW_Stock_Polling.Services
                     _logger.LogInformation("擷取網站中...");
                     var stream = new MemoryStream(price);
                     await _botClient.SendPhotoAsync(
-                        caption: $"{stockName} 績效表現　✨",
-                        chatId: message.Chat.Id,
-                        photo: InputFile.FromStream(stream),
-                        parseMode: ParseMode.Html,
-                        cancellationToken: cancellationToken);
+                                    caption: $"{stockName} 績效表現　✨",
+                                    chatId: message.Chat.Id,
+                                    photo: InputFile.FromStream(stream),
+                                    parseMode: ParseMode.Html,
+                                    cancellationToken: cancellationToken);
                     _logger.LogInformation("已傳送資訊");
+                }, maxRetries, delay, message, cancellationToken);
 
-                    // 成功後跳出迴圈
-                    break;
-                }
-                catch (Exception ex)
-                {
-                    retryCount++;
-                    _logger.LogInformation($"GetPerformanceAsync： 嘗試 {retryCount} 次失敗：{ex.Message}");
-
-                    if (retryCount >= maxRetries)
-                    {
-                        _logger.LogInformation($"GetPerformanceAsync： 已達最大重試次數 ({maxRetries})，拋出例外。");
-                        await _botClient.SendTextMessageAsync(
-                           text: "因機器人部屬於雲端，有時會無法讀取網頁，請將程式部屬至本機執行。",
-                           chatId: message.Chat.Id,
-                           parseMode: ParseMode.Html,
-                           cancellationToken: cancellationToken);
-                        _logger.LogInformation("已傳送資訊");
-                        throw new Exception($"GetPerformanceAsync： 失敗：{ex.Message}");
-                    }
-
-                    _logger.LogInformation($"等待 {delay.TotalSeconds} 秒後重試...");
-                    await Task.Delay(delay, cancellationToken);
-                }
-                finally
-                {
-                    await _browserHandlers.ReleaseBrowser();
-                }
-            }
         }
 
         /// <summary>
@@ -326,76 +230,44 @@ namespace TGBot_TW_Stock_Polling.Services
         /// <returns></returns>
         public async Task GetNewsAsync(string stockNumber, Message message, CancellationToken cancellationToken)
         {
-            const int maxRetries = 3; // 最大重試次數
-            int retryCount = 0;
-            TimeSpan delay = TimeSpan.FromSeconds(3); // 每次重試的延遲時間
-            while (true)
-            {
-                try
-                {
-                    //載入網頁
-                    var page = await _browserHandlers.LoadUrlAsync(stockUrl + stockNumber);
+            await _commonService.RetryAsync(async () =>
+              {
+                  //載入網頁
+                  var page = await _browserHandlers.LoadUrlAsync(stockUrl + stockNumber);
 
-                    //拆解元素
-                    var element = await page.QuerySelectorAsync("//html//body//div[1]//div[1]//div[4]//div[2]//div[1]//div[1]//div[1]//div//div[2]//div[2]//h2");
-                    if (element == null) throw new Exception("找不到指定元素");
-                    var textContent = await element.EvaluateAsync<string>("node => node.innerText");
+                  //拆解元素
+                  var element = await page.QuerySelectorAsync("//html//body//div[1]//div[1]//div[4]//div[2]//div[1]//div[1]//div[1]//div//div[2]//div[2]//h2");
+                  if (element == null) throw new Exception("找不到指定元素");
+                  var textContent = await element.EvaluateAsync<string>("node => node.innerText");
 
-                    //股票名稱
-                    var stockName = textContent.Split("\n").ToList()[0];
-                    //定位新聞版塊
-                    var newsList = await page.QuerySelectorAsync("//div[contains(@class, 'news-notice-container-summary')]");
-                    if (newsList == null) throw new Exception("找不到指定元素");
-                    var newsContent = await newsList.QuerySelectorAllAsync("//a[contains(@class, 'container shadow')]");
-                    if (newsContent == null) throw new Exception("找不到指定元素");
+                  //股票名稱
+                  var stockName = textContent.Split("\n").ToList()[0];
+                  //定位新聞版塊
+                  var newsList = await page.QuerySelectorAsync("//div[contains(@class, 'news-notice-container-summary')]");
+                  if (newsList == null) throw new Exception("找不到指定元素");
+                  var newsContent = await newsList.QuerySelectorAllAsync("//a[contains(@class, 'container shadow')]");
+                  if (newsContent == null) throw new Exception("找不到指定元素");
 
-                    var InlineList = new List<IEnumerable<InlineKeyboardButton>>();
-                    for (int i = 0; i < 5; i++)
-                    {
-                        if (newsContent[i] == null) continue;
-                        var text = await newsContent[i].TextContentAsync() ?? string.Empty;
-                        var url = await newsContent[i].GetAttributeAsync("href") ?? string.Empty;
-                        if (string.IsNullOrEmpty(url) || string.IsNullOrEmpty(text)) continue;
-                        InlineList.Add(new[] { InlineKeyboardButton.WithUrl(text, url) });
-                    }
+                  var InlineList = new List<IEnumerable<InlineKeyboardButton>>();
+                  for (int i = 0; i < 5; i++)
+                  {
+                      if (newsContent[i] == null) continue;
+                      var text = await newsContent[i].TextContentAsync() ?? string.Empty;
+                      var url = await newsContent[i].GetAttributeAsync("href") ?? string.Empty;
+                      if (string.IsNullOrEmpty(url) || string.IsNullOrEmpty(text)) continue;
+                      InlineList.Add(new[] { InlineKeyboardButton.WithUrl(text, url) });
+                  }
 
-                    InlineKeyboardMarkup inlineKeyboard = new(InlineList);
-                    var s = inlineKeyboard.InlineKeyboard;
-                    await _botClient.SendTextMessageAsync(
-                        chatId: message.Chat.Id,
-                        text: @$"⚡️{stockName}-即時新聞",
-                        replyMarkup: inlineKeyboard,
-                        cancellationToken: cancellationToken);
-                    _logger.LogInformation("已傳送資訊");
+                  InlineKeyboardMarkup inlineKeyboard = new(InlineList);
+                  var s = inlineKeyboard.InlineKeyboard;
+                  await _botClient.SendTextMessageAsync(
+                    chatId: message.Chat.Id,
+                    text: @$"⚡️{stockName}-即時新聞",
+                    replyMarkup: inlineKeyboard,
+                    cancellationToken: cancellationToken);
+                  _logger.LogInformation("已傳送資訊");
 
-                    // 成功後跳出迴圈
-                    break;
-                }
-                catch (Exception ex)
-                {
-                    retryCount++;
-                    _logger.LogInformation($"GetNewsAsync 嘗試 {retryCount} 次失敗：{ex.Message}");
-
-                    if (retryCount >= maxRetries)
-                    {
-                        _logger.LogInformation($"GetNewsAsync 已達最大重試次數 ({maxRetries})，拋出例外。");
-                        await _botClient.SendTextMessageAsync(
-                           text: "因機器人部屬於雲端，有時會無法讀取網頁，請將程式部屬至本機執行。",
-                           chatId: message.Chat.Id,
-                           parseMode: ParseMode.Html,
-                           cancellationToken: cancellationToken);
-                        _logger.LogInformation("已傳送資訊");
-                        throw new Exception($"GetNewsAsync 失敗：{ex.Message}");
-                    }
-
-                    _logger.LogInformation($"等待 {delay.TotalSeconds} 秒後重試...");
-                    await Task.Delay(delay, cancellationToken);
-                }
-                finally
-                {
-                    await _browserHandlers.ReleaseBrowser();
-                }
-            }
+              }, maxRetries, delay, message, cancellationToken);
         }
     }
 }
