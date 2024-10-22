@@ -41,6 +41,7 @@ try
     builder.Services.AddHostedService<PollingService>();
     builder.Services.AddSingleton<UpdateHandler>();
     builder.Services.AddSingleton<ReceiverService>();
+    builder.Services.AddTransient<ICommonService, CommonService>();
     builder.Services.AddTransient<IBrowserHandlers, BrowserHandlers>();
     builder.Services.AddTransient<IBotService, BotService>();
     builder.Services.AddTransient<TradingView>();
