@@ -31,7 +31,7 @@ namespace TGBot_TW_Stock_Polling.Services
             return await SendTextMessageAsync(new MessageDto
             {
                 Message = message,
-                Text = $"Hello {message.Chat.Username}",
+                Text = $"Hello {message.Chat.FirstName} {message.Chat.LastName}",
                 ReplyMarkup = new ReplyKeyboardRemove(),
                 ParseMode = ParseMode.Html,
                 CancellationToken = cancellationToken
@@ -54,7 +54,7 @@ namespace TGBot_TW_Stock_Polling.Services
             return await SendTextMessageAsync(new MessageDto
             {
                 Message = message,
-                Text = @$"<b>-讀取中，請稍後⏰-</b>",
+                Text = $"<b>-讀取中，請稍後⏰-</b>",
                 ReplyMarkup = new ReplyKeyboardRemove(),
                 ParseMode = ParseMode.Html,
                 CancellationToken = cancellationToken
