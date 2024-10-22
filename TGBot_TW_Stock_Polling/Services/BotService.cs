@@ -31,7 +31,7 @@ namespace TGBot_TW_Stock_Polling.Services
             return await SendTextMessageAsync(new MessageDto
             {
                 Message = message,
-                Text = "Hello " + message.From?.FirstName + " " + message.From?.LastName + "",
+                Text = $"Hello {message.Chat.Username}",
                 ReplyMarkup = new ReplyKeyboardRemove(),
                 ParseMode = ParseMode.Html,
                 CancellationToken = cancellationToken
@@ -44,6 +44,7 @@ namespace TGBot_TW_Stock_Polling.Services
             {
                 Message = message,
                 Text = "指令錯誤請重新輸入",
+                ParseMode = ParseMode.Html,
                 CancellationToken = cancellationToken
             });
         }
