@@ -72,8 +72,16 @@ m   - 月K線
 
 ### 基本資訊查詢
 - 股價資訊：`/v [股票代碼]`
+  
+  <img src="readme/images/detail.jpg" alt="detail" height="300" width="450">
 - 績效資訊：`/p [股票代碼]`
+  
+ <img src="readme/images/proformance.jpg" alt="proformance" height="300" width="450">
+ 
 - 個股新聞：`/n [股票代碼]`
+  
+ <img src="readme/images/news.jpg" alt="news" height="300" width="450">
+
 
 ### TradingView 圖表
 ```
@@ -87,6 +95,7 @@ m   - 月K線
 1y  - 一年    5y  - 五年
 all - 全部時間
 ```
+<img src="readme/images/chart.jpg" alt="chart" height="300" width="450">
 
 ## 🔍 已知問題
 - TradingView 在高頻訪問時可能會要求登入
@@ -94,7 +103,6 @@ all - 全部時間
 ## 📝 開發計劃
 - [ ] 新增美股市場支援
 - [ ] 觀察名單功能
-- [ ] 擴充更多技術分析指標
 
 ## 🤝 貢獻指南
 歡迎提交 Issue 和 Pull Request 來協助改善專案！
