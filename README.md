@@ -30,6 +30,24 @@ docker build -t [your-image-name] . --no-cache
 - 🐳 Docker 容器化部署
 - 🔄 GitHub Actions CI/CD
 
+### 自動化部署流程
+本專案採用 Git 搭配 GitHub Actions 達成自動化部署：
+
+1. **觸發機制**
+   - 為需部署的 commit 加上 tag
+   - Push 至 GitHub 自動觸發部署流程
+
+2. **CI/CD 流程**
+   - **Build 階段**
+     - 執行程式測試
+     - 驗證功能完整性
+     - 測試通過後觸發部署
+   
+   - **Deploy 階段**
+     - 注入 Telegram Bot API Key
+     - 建立並發布 Docker Image
+     - 自動部署至 EC2 執行環境
+
 ## 🔧 系統架構
 
 <img src="readme/images/flowchart.png" alt="系統架構圖" height="400" width="600">
